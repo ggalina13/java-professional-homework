@@ -17,7 +17,7 @@ public class CustomerService {
         return copyEntry(entry);
     }
 
-    public Map.Entry<Customer, String> copyEntry(Map.Entry<Customer, String> entry) {
+    private Map.Entry<Customer, String> copyEntry(Map.Entry<Customer, String> entry) {
         if (entry == null) {
             return null;
         }
