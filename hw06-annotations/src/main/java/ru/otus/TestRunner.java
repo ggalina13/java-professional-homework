@@ -46,21 +46,21 @@ public class TestRunner {
         try {
             Object testClassInstance = createInstance(testClass);
             try {
+                prepare(befores, testClassInstance);
                 try {
-                    prepare(befores, testClassInstance);
+                    test.invoke(testClassInstance);
                 } catch (InvocationTargetException e) {
-                    System.out.println("Failed: exception occured in before method " + e.getTargetException());
+                    System.out.println("Failed: exception occured in testing method " + e.getTargetException());
                     testPassed = false;
-                } catch (IllegalAccessException e) {
-                    System.out.println("Failed: failed to run before method" + e);
+                } catch (IllegalAccessException | IllegalArgumentException e) {
+                    System.out.println("Failed: failed to execute test method" + e);
                     testPassed = false;
                 }
-                test.invoke(testClassInstance);
             } catch (InvocationTargetException e) {
-                System.out.println("Failed: exception occured in testing method " + e.getTargetException());
+                System.out.println("Failed: exception occured in before method " + e.getTargetException());
                 testPassed = false;
-            } catch (IllegalAccessException | IllegalArgumentException e) {
-                System.out.println("Failed: failed to execute test method" + e);
+            } catch (IllegalAccessException e) {
+                System.out.println("Failed: failed to run before method" + e);
                 testPassed = false;
             } finally {
                 try {
@@ -73,7 +73,7 @@ public class TestRunner {
                     testPassed = false;
                 }
             }
-        } catch (InvocationTargetException | InstantiationException | IllegalAccessException | NoSuchMethodException e) {
+        } catch (ReflectiveOperationException e) {
             System.out.println("Failed: failed to create a test class instance " + e);
             testPassed = false;
         }
