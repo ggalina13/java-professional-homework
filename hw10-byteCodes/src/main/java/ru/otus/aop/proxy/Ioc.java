@@ -4,6 +4,10 @@ import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.lang.reflect.Proxy;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import ru.otus.Log;
 
@@ -20,6 +24,7 @@ class Ioc {
 
     static class DemoInvocationHandler implements InvocationHandler {
         private final Calculator myClass;
+        private final HashMap<Method, MethodInfo> methodsInfo = new HashMap<>();
 
         DemoInvocationHandler(Calculator myClass) {
             this.myClass = myClass;
@@ -27,18 +32,22 @@ class Ioc {
 
         @Override
         public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-            if (method.isAnnotationPresent(Log.class)) {
+            if (!methodsInfo.containsKey(method)) {
+                methodsInfo.put(method, new MethodInfo(method.isAnnotationPresent(Log.class),
+                    method.getName(),
+                    Arrays.stream(method.getParameters())
+                        .map(x -> x.isNamePresent() ? x.getName() : "param")
+                        .collect(Collectors.toList())));
+            }
+            MethodInfo methodInfo = methodsInfo.get(method);
+            if (methodInfo.isLogged()) {
                 StringBuilder message = new StringBuilder();
                 message.append("invoking method: ");
-                message.append(method.getName()).append(" ");
-                Parameter[] parameters = method.getParameters();
-                for (int i = 0; i < parameters.length; i++) {
-                    if (parameters[i].isNamePresent()) {
-                        message.append(parameters[i].getName()).append(":").append(args[i]);
-                    } else {
-                        message.append("param").append(i + 1).append(":").append(args[i]);
-                    }
-                    if (i < parameters.length - 1) {
+                message.append(methodInfo.getName()).append(" ");
+                List<String> parameters = methodInfo.getParameters();
+                for (int i = 0; i < parameters.size(); i++) {
+                    message.append(parameters.get(i)).append(i + 1).append(":").append(args[i]);
+                    if (i < parameters.size() - 1) {
                         message.append(", ");
                     }
                 }
